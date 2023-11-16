@@ -1,5 +1,62 @@
 #include "myShell.h"
 
+void add_cmd_to_history(cmd_history *history, const char *command) {
+    //add each tokenized command to history
+    if (history->count < TOKEN_BUFFER) {
+        strcpy(history->entries[history->count], command);
+        history->count++;
+    } else {
+        //if the history buffer is full, shift all the entries to make room for the latest command entered
+        for (int i = 0; i < TOKEN_BUFFER - 1; i++) {
+            strcpy(history->entries[i], history->entries[i + 1]);
+        }
+        strcpy(history->entries[TOKEN_BUFFER - 1], command);
+    }
+}
+
+void cd_cmd(const char *path) {
+    //change the current path directory
+    if (chdir(path) != 0) {
+        perror("cd");
+    }
+}
+
+void exec_cmd(char *tokens[], cmd_history *history) {
+    //execute cmd
+    pid_t pid = fork();
+
+    if (pid == 0) {
+        //child process
+        execvp(tokens[0], tokens);
+        perror("execvp");
+        exit(1);
+    } else if (pid < 0) {
+        perror("fork");
+    } else {
+        //parent process
+        waitpid(pid, NULL, 0);
+    }
+}
+
+void display_history(cmd_history *history) {
+    //display the history of user commands
+    printf("Command History:\n");
+    for (int i = 0; i < history->count; i++) {
+        printf("%2d. %s\n", i + 1, history->entries[i]);
+    }
+}
+
+void help_cmd() {
+    //display brief info on each command
+    printf("Available commands at your disposal: 'cd' to change directory, 'ls' to list contents of a directory ,'pwd' to print the current directory, 'mkdir' to make a new directory, 'rmdir' to remove a directory, 'history' to view your command history, 'exit' to exit myShell\n");
+}
+
+void exit_cmd() {
+    //exit shell
+    printf("Exiting myShell.\n");
+    exit(0);
+}
+
 int main() {
     char commands[INPUT_BUFFER];
     cmd_history history = {.count = 0};
