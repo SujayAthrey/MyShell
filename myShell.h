@@ -6,21 +6,29 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
+#define INPUT_BUFFER 1024
+#define TOKEN_BUFFER 100
+#define HISTORY_BUFFER 20
 #define DELIMINATORS " \t\r\n\a"
-#define BUFSIZE 1024
-#define PARSEBUFSIZE 256
 
-char *read(void);
-char **parse(char *args);
-int forkIt(char **args);
-int executeShell(char **args);
-int runShell(void);
+// Structure to store command history
+typedef struct {
+    char entries[HISTORY_BUFFER][INPUT_BUFFER];
+    int count;
+} cmd_history;
+
+char *readInput(void);
+char **parseInput(char *input);
+void exec_cmd(char *tokens[], cmd_history *history);
+void add_cmd_to_history(cmd_history *history, const char *command);
+void display_history(const cmd_history *history);
 
 //built ins
-int cdShell(char **args);
-int helpShell(char **args);
-int exitShell(char **args);
-
+void cd_cmd(char *path);
+void help_cmd(void);
+void exit_cmd(void);
 
 #endif
